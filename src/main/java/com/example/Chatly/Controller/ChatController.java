@@ -63,7 +63,7 @@ public class ChatController {
             //set the time the user joined the chat
             chatMessage.setTimeStamp(LocalDateTime.now());
 
-            if(chatMessage.getContent() == ""){
+            if(chatMessage.getContent() == null){
                 chatMessage.setContent(""); //when i click join i dont send any message, so this message gets saved in db, if i dont do "" it will save null
             }
 
@@ -71,8 +71,17 @@ public class ChatController {
 
             System.out.println(chatMessage.getSender()+" joined");
 
-            //finally save the messages being sent in the ChatMessageRepo
-           return chatMessageService.saveMessage(chatMessage);
+            //finally saves the message
+            chatMessageService.saveMessage(chatMessage);
+
+            //join message
+            ChatMessage joinMessage = new ChatMessage();
+            joinMessage.setSender(chatMessage.getSender());
+            joinMessage.setTimeStamp(chatMessage.getTimeStamp());
+            joinMessage.setType(chatMessage.getType());
+            joinMessage.setContent(chatMessage.getSender()+" joined the chat");
+
+           return joinMessage;
         }
         return null;
     }
@@ -144,6 +153,19 @@ public class ChatController {
         else{
             System.out.println("EROR: "+chatMessage.getSender()+" or "+chatMessage.getRecipient()+" does not exist");
         }
+    }
+
+    //<----------- USER LEAVES -----------> (clicks leave button)
+    @MessageMapping("/chat.userLeave")
+    @SendTo("/topic/public")
+    public ChatMessage userLeave(@Payload ChatMessage chatMessage , SimpMessageHeaderAccessor simpMessageHeaderAccessor){
+        userService.setUserOnlineStatus(chatMessage.getSender(), false);
+        chatMessage.setType(ChatMessage.MessageType.LEAVE);
+        chatMessage.setTimeStamp(LocalDateTime.now());
+
+        System.out.println(chatMessage.getSender() + " clicked leave button");
+
+        return chatMessage;
     }
 
 
