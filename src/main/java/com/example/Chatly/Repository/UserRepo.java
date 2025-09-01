@@ -9,9 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface UserRepo extends JpaRepository<User,Long> {
      boolean existsByUsername(String username);
+     User findByUsername(String username);
+
 
      // we cant use derived methods for updating stuff
     @Modifying

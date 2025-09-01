@@ -10,9 +10,8 @@ import lombok.Data;
 //this is the userdto as we are responding with required info, no password and ID
 public class UserDTO {
 
+    private Long id;
     private String username;
-
     private String email;
-
     private boolean isOnline  =false;
 }
