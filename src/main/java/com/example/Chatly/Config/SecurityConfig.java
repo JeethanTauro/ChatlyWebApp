@@ -11,6 +11,8 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,33 +33,37 @@ public class SecurityConfig {
     @Autowired
     private JWTAuthentiationFilter jwtAuthentiationFilter;
 
+    //the security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf(csrf->csrf.disable())
-                .headers(headers -> headers.frameOptions(frameOptionsConfig ->frameOptionsConfig.disable() ))
+        httpSecurity.csrf(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .cors(cors->cors.configurationSource(addConfigurationSource()))
                 .authorizeHttpRequests(auth-> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll() //the auth page is not authenticated, when we send the stuff from front end to backend it gets authenticated
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll().anyRequest().authenticated())
-                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .requestMatchers("/ws/**").permitAll().anyRequest().authenticated()) //websocket is also open
+                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //tells spring security not to use session management
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthentiationFilter , UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthentiationFilter , UsernamePasswordAuthenticationFilter.class); //need to add the jwt filter before the other filters
         return httpSecurity.build();
     }
 
+    //required userDetailsService bean, we have created our custom userDetailsService
     @Bean
     public UserDetailsService userDetailsService(){
         return new CustomUserDetails();
     }
 
+    //required password encoder bean
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
 
+    //required authentication provider bean
     @Bean
     public AuthenticationProvider authenticationProvider(){
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
@@ -67,11 +73,15 @@ public class SecurityConfig {
         return daoAuthenticationProvider;
     }
 
+
+    //this is the required authentication manager bean
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
+
+    //our own cors configuration
     @Bean
     public CorsConfigurationSource addConfigurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
@@ -87,7 +97,5 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**",configuration);
 
         return source;
-
-
     }
 }
