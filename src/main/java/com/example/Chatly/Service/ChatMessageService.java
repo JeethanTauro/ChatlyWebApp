@@ -19,6 +19,6 @@ public class ChatMessageService {
     }
 
     public List<ChatMessage> privateMessagesBetweenTwoUsers(String user1, String user2){
-        return chatMessageRepo.findPrivateMessagesBetweenTwoUsers(user1, user2);
+        return chatMessageRepo.findPrivateMessagesBetweenTwoUsers(user1, user2, ChatMessage.MessageType.PRIVATE_CHAT);
     }
 }
