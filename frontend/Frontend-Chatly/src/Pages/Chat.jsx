@@ -51,7 +51,7 @@ function Chat() {
 
     setConnectionStatus("Connecting...");
 
-    const socket = new SockJS("http://localhost:8080/ws");
+    const socket = new SockJS("/ws");
     stompClient.current = Stomp.over(socket);
 
     stompClient.current.debug = (str) => console.log("STOMP Debug:", str);
