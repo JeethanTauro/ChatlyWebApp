@@ -6,6 +6,7 @@ import com.example.Chatly.DTO.RegisterRequestDTO;
 import com.example.Chatly.DTO.UserDTO;
 import com.example.Chatly.JWT.JWTService;
 import com.example.Chatly.Model.User;
+import com.example.Chatly.Repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +16,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +35,9 @@ public class AuthenticationService {
 
     @Autowired
     private JWTService jwtService;
+
+    @Autowired
+    private UserRepo userRepo;
 
     public UserDTO signUp(RegisterRequestDTO registerRequestDTO){
         String username = registerRequestDTO.getUsername();
@@ -93,5 +101,11 @@ public class AuthenticationService {
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString())
                 .body("Logged out successfully");
 
+    }
+
+    public Map<String,Object> getOnlineUsers(){
+        List<User> userList =  userRepo.findByIsOnlineIsTrue();
+        Map<String, Object> onlineUsers = userList.stream().collect(Collectors.toMap(User::getUsername , user->user));
+        return  onlineUsers;
     }
 }

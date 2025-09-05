@@ -2,6 +2,7 @@ package com.example.Chatly.Model;
 
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -20,7 +21,7 @@ public class ChatMessage {
     @Column(nullable = false)
     private LocalDateTime timeStamp; //the timestamp at which the message is sent
 
-    private String colour; //Here each user will be given a random color for messages and profile
+    private String color; //Here each user will be given a random color for messages and profile
 
     private String sender; // sent by whom
 

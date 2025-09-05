@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import AuthService from '../Services/AuthService.js'
 
 export default function Signup() {
         const[username  , setUsername]   =  useState('');
@@ -8,12 +9,12 @@ export default function Signup() {
         const[message, setMessage] = useState('');
         const[isLoading , setIsLoading] = useState(false);
         const navigate = useNavigate();
-        handleSignup = async(e)=>{
+        const handleSignup = async(e)=>{
             e.preventDefault();
             setMessage('');
             setIsLoading(true);
             try{
-                const result = await authservice.signup(username, email, password);
+                const result = await AuthService.signup(username, email, password);
                 if(result.success){
                     setMessage("Account created successfully !! Please Login now");
                 }
@@ -32,13 +33,13 @@ export default function Signup() {
 
         }
   return (
-    <div className='Signup-Container'>
-        <div className='Signup-Box'>
-            <div className='Signup-Header'>
+    <div className='signup-container'>
+        <div className='signup-box'>
+            <div className='signup-header'>
                 <h1>Sign Up</h1>
                 <p>Create account to start chatting</p>
             </div>
-            <form onSubmit={handleSignup} className='Signup-Form'>
+            <form onSubmit={handleSignup} className='signup-form'>
                 <input 
                 type="text" 
                 placeholder="Username" 
@@ -47,7 +48,7 @@ export default function Signup() {
                 maxLength={20}
                 required
                 disabled={isLoading}
-                className='User-Input'
+                className='user-input'
                 />
 
                 <input 
@@ -55,10 +56,10 @@ export default function Signup() {
                 placeholder="Email" 
                 value={email} 
                 onChange={(e)=>setEmail(e.target.value)}
-                maxLength={40}
+                maxLength={100}
                 required
                 disabled={isLoading}
-                className='User-Input'
+                className='user-input'
                 />
 
                 <input 
@@ -69,7 +70,7 @@ export default function Signup() {
                 minLength={8}
                 required
                 disabled={isLoading}
-                className='User-Input'
+                className='user-input'
                 />
                 <button type='submit' 
                         disabled={!username.trim() || !email.trim() || !password.trim() || isLoading}

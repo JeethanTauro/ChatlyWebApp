@@ -36,17 +36,27 @@ public class SecurityConfig {
     //the security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf(AbstractHttpConfigurer::disable)
+        httpSecurity
+                .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                .cors(cors->cors.configurationSource(addConfigurationSource()))
-                .authorizeHttpRequests(auth-> auth
-                        .requestMatchers("/auth/**").permitAll() //the auth page is not authenticated, when we send the stuff from front end to backend it gets authenticated
+                .cors(cors -> cors.configurationSource(addConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll().anyRequest().authenticated()) //websocket is also open
-                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //tells spring security not to use session management
+
+                        // ✅ Allow WebSocket handshake + broker endpoints
+                        .requestMatchers("/ws/**", "/ws").permitAll()
+                        .requestMatchers("/app/**").permitAll()
+                        .requestMatchers("/topic/**").permitAll()
+                        .requestMatchers("/queue/**").permitAll()
+
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthentiationFilter , UsernamePasswordAuthenticationFilter.class); //need to add the jwt filter before the other filters
+                .addFilterBefore(jwtAuthentiationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return httpSecurity.build();
     }
 

@@ -1,19 +1,19 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import AuthService from '../Services/AuthService';
 
 export default function Login() {
         const[username  , setUsername]   =  useState('');
         const[password  , setPassword]   =  useState('');
-        const[email  , setEmail]   =  useState('');
         const[message, setMessage] = useState('');
         const[isLoading , setIsLoading] = useState(false);
         const navigate = useNavigate();
-        handleLogin = async(e)=>{
+        const handleLogin = async(e)=>{
             e.preventDefault();
             setMessage('');
             setIsLoading(true);
             try{
-                const result = await authservice.login(username, password);
+                const result = await AuthService.login(username, password);
                 if(result.success){
                     setMessage("Logged in Successfully");
                 }
@@ -32,13 +32,13 @@ export default function Login() {
 
         }
   return (
-    <div className='Login-Container'>
-        <div className='Login-Box'>
-            <div className='Login-Header'>
+    <div className='login-container'>
+        <div className='login-box'>
+            <div className='login-header'>
                 <h1>Login</h1>
                 <p>Login to start chatting</p>
             </div>
-            <form onSubmit={handleLogin} className='Login-Form'>
+            <form onSubmit={handleLogin} className='login-form'>
                 <input 
                 type="text" 
                 placeholder="Username" 
@@ -47,7 +47,7 @@ export default function Login() {
                 maxLength={20}
                 required
                 disabled={isLoading}
-                className='User-Input'
+                className='user-input'
                 />
 
                 <input 
@@ -58,11 +58,11 @@ export default function Login() {
                 minLength={8}
                 required
                 disabled={isLoading}
-                className='User-Input'
+                className='user-input'
                 />
                 <button type='submit' 
                         disabled={!username.trim()  || !password.trim() || isLoading}
-                        className='Login-Button'>
+                        className='login-button'>
                             {isLoading ? 'Logging in...' :  'Login'}
                 </button>
 

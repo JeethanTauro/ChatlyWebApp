@@ -6,7 +6,7 @@ spring:
     name: Chatly
 
   datasource:
-    url: jdbc:h2:mem:chatlydb
+    url:  jdbc:h2:file:./data/chatlydb
     driver-class-name: org.h2.Driver
     username: sa
     password: password

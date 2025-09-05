@@ -152,6 +152,17 @@ const AuthService={
             console.error("Error in fetching private messages : ",error);
             throw error;
         }
+    },
+
+    getOnlineUsers : async()=>{
+        try{
+            const response = await api.get("/auth/onlineUser");
+            return response.data;
+        }
+        catch(error){
+            console.error("Could not get online users : ",error);
+            throw error;
+        }
     }
 
 
@@ -189,3 +200,5 @@ api.interceptors.response.use(
     }
 
 );
+
+export default AuthService;

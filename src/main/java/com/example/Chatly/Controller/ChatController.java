@@ -17,6 +17,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Controller
@@ -73,6 +74,10 @@ public class ChatController {
 
             //finally saves the message
             chatMessageService.saveMessage(chatMessage);
+
+            // ✅ Broadcast updated online users list to all users
+            List<User> onlineUsers = userService.getIsOnlineUsers();
+            simpMessagingTemplate.convertAndSend("/topic/onlineUsers", onlineUsers);
 
             //join message
             ChatMessage joinMessage = new ChatMessage();
@@ -154,19 +159,28 @@ public class ChatController {
             System.out.println("EROR: "+chatMessage.getSender()+" or "+chatMessage.getRecipient()+" does not exist");
         }
     }
+    @MessageMapping("/chat.leaveUser")
+    public void leaveUser(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
+        if (!userService.userExists(chatMessage.getSender())) return;
 
-    //<----------- USER LEAVES -----------> (clicks leave button)
-    @MessageMapping("/chat.userLeave")
-    @SendTo("/topic/public")
-    public ChatMessage userLeave(@Payload ChatMessage chatMessage , SimpMessageHeaderAccessor simpMessageHeaderAccessor){
+        // Set user as offline
         userService.setUserOnlineStatus(chatMessage.getSender(), false);
-        chatMessage.setType(ChatMessage.MessageType.LEAVE);
+
+        System.out.println("User left: " + chatMessage.getSender());
+
+        // Prepare LEAVE message
         chatMessage.setTimeStamp(LocalDateTime.now());
+        chatMessage.setContent(chatMessage.getSender() + " left the chat");
+        chatMessage.setType(ChatMessage.MessageType.LEAVE);
 
-        System.out.println(chatMessage.getSender() + " clicked leave button");
+        // Save in DB
+        chatMessageService.saveMessage(chatMessage);
 
-        return chatMessage;
+        // ✅ Broadcast updated online users list to all users
+        List<User> onlineUsers = userService.getIsOnlineUsers();
+        simpMessagingTemplate.convertAndSend("/topic/onlineUsers", onlineUsers);
+
+        // ✅ Optionally broadcast LEAVE message to public chat
+        simpMessagingTemplate.convertAndSend("/topic/public", chatMessage);
     }
-
-
 }

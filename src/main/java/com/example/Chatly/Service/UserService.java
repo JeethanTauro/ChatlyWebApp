@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -34,5 +35,8 @@ public class UserService{
 
     public Optional<User> getUserById(Long userId){
         return userRepo.findById(userId);
+    }
+    public List<User> getIsOnlineUsers(){
+        return userRepo.findByIsOnlineIsTrue();
     }
 }

@@ -1,45 +1,47 @@
-package com.example.Chatly.Listener;
-
-
-
-//this basically listenes what is going on in the websocket
-//if any new websocket connection happens (someone new added to group chat), we have already handled this in the controller , when user clicks join the message gets broadcasted to evryone
-
-//if somone disconnected (somone left the group chat)
-//See a user can join only if he clicks join, so thats handled in the front end
-// but a user can leave either by clicking or by unexpected network problems or closing the browser, these are events that user doesnt do so we wont be able to catch it
-//
-
+package com.example.Chatly.Controller;
 
 import com.example.Chatly.Model.ChatMessage;
+import com.example.Chatly.Service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j // ✅ Use a proper logger instead of System.out.println
 public class WebSocketListener {
-    @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
+
+    private final UserService userService;
+    private final SimpMessageSendingOperations messagingTemplate;
 
     @EventListener
-    public void handleWebSocketDisconnectionListener(SessionDisconnectEvent event) {
-        String username = (String) event.getUser().getName(); //get the username from the event
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+
+        // ✅ Retrieve the username we stored in the session attributes
+        String username = (String) headerAccessor.getSessionAttributes().get("username");
 
         if (username != null) {
-            ChatMessage chatMessage = new ChatMessage();
+            log.info("User disconnected: {}", username);
+
+            // ✅ Set user status to offline in the database
+            userService.setUserOnlineStatus(username, false);
+
+            // ✅ Create and broadcast a LEAVE message to all users
+            var chatMessage = new ChatMessage();
             chatMessage.setType(ChatMessage.MessageType.LEAVE);
             chatMessage.setSender(username);
+            chatMessage.setContent(username + " has left the chat.");
             chatMessage.setTimeStamp(LocalDateTime.now());
-            simpMessagingTemplate.convertAndSend("/topic/public", chatMessage);
-            System.out.println("Disconnected unexpectedly");
+
+            messagingTemplate.convertAndSend("/topic/public", chatMessage);
         }
     }
-
 }

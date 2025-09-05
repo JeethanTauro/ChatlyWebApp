@@ -17,6 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 //for authentication, we can't use websockets, we need a rest controller
 
 @RequiredArgsConstructor
@@ -60,7 +63,13 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(){
+
         return authenticationService.logout();
+    }
+
+    @GetMapping("/onlineUsers")
+    public ResponseEntity<Map<String, Object>> getOnlineUsers(){
+        return ResponseEntity.ok(authenticationService.getOnlineUsers());
     }
 
     @GetMapping("/getCurrentUser")

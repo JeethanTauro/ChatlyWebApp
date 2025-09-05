@@ -1,8 +1,7 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {AuthService} from './Services/AuthService.js'
-import Login from './Pages/Login.jsx'
-import Signup from './Pages/Signup.jsx'
+import AuthService from '../Services/AuthService.js'
+
 
 // our navbar has to be dynamic isnt it
 // when we are logged out we have to see the sign in option
@@ -37,7 +36,7 @@ function Navbar() {
                 {isAuthenticated ? (
                     <>
                         <Link to={"/ChatArea"} className='Navbar-Link'>
-                            <ChatArea/>
+                            Chat
                         </Link>
                         <div className='Navbar-Username'>
                             <span className='User-Info'>Welcome {currentUser.username}</span>

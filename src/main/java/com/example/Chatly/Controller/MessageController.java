@@ -21,7 +21,7 @@ public class MessageController {
 
     @Autowired
     private ChatMessageService chatMessageService;
-    @GetMapping()
+    @GetMapping("/private")
     public ResponseEntity<List<ChatMessage>> getPrivateMessages(@RequestParam String user1 , @RequestParam String user2){
         List<ChatMessage> messages = chatMessageService.privateMessagesBetweenTwoUsers(user1, user2);
         return ResponseEntity.ok(messages);
