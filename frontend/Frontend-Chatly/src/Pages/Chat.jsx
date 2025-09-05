@@ -16,13 +16,14 @@ function Chat() {
   const [unreadMessages, setUnreadMessages] = useState(new Map());
   const [onlineUsers, setOnlineUsers] = useState(new Map());
   const [connectionStatus, setConnectionStatus] = useState("Connecting...");
-  const [allPrivateMessages, setAllPrivateMessages] = useState(new Map()); // <-- store all private messages
+  const [allPrivateMessages, setAllPrivateMessages] = useState(new Map());
 
   const privateMessagesHandlers = useRef(new Map());
   const stompClient = useRef(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const openChatsRef = useRef(new Map()); // Track currently open private chats
 
   const emojis = ["😀", "🎉", "🔥", "🚀", "✨", "💡", "🎶", "🌍", "⚡", "❤️"];
 
@@ -106,7 +107,6 @@ function Chat() {
                 return newUsers;
               });
 
-              // System message for others
               if (chatMessage.sender !== username) {
                 setMessages((prev) => [
                   ...prev,
@@ -128,6 +128,7 @@ function Chat() {
                 return newUsers;
               });
 
+              // Only append if not yourself
               if (chatMessage.sender !== username) {
                 setMessages((prev) => [
                   ...prev,
@@ -169,7 +170,8 @@ function Chat() {
             // Call handler if chat is open
             const handler = privateMessagesHandlers.current.get(otherUser);
             if (handler) handler(privateMessage);
-            else if (privateMessage.recipient === username) {
+            else if (privateMessage.recipient === username && !openChatsRef.current.has(otherUser)) {
+              // Only increment unread if panel is NOT open
               setUnreadMessages((prev) => {
                 const newUnread = new Map(prev);
                 const currentCount = newUnread.get(otherUser) || 0;
@@ -213,13 +215,8 @@ function Chat() {
     connectToWebSocket();
 
     return () => {
+      // Only disconnect, do not send LEAVE manually
       if (stompClient.current && stompClient.current.connected) {
-        const leaveMessage = { sender: username, type: "LEAVE", color: userColor };
-        try {
-          stompClient.current.send("/app/chat.leaveUser", {}, JSON.stringify(leaveMessage));
-        } catch (error) {
-          console.error("Error sending leave message:", error);
-        }
         stompClient.current.disconnect();
       }
 
@@ -236,6 +233,7 @@ function Chat() {
     setPrivateChat((prev) => {
       const newChats = new Map(prev);
       newChats.set(otherUser, true);
+      openChatsRef.current.set(otherUser, true); // track open immediately
       return newChats;
     });
 
@@ -250,6 +248,7 @@ function Chat() {
     setPrivateChat((prev) => {
       const newChats = new Map(prev);
       newChats.delete(otherUser);
+      openChatsRef.current.delete(otherUser); // remove from open chats ref
       return newChats;
     });
     unregisterPrivateMessageHandler(otherUser);
@@ -305,6 +304,7 @@ function Chat() {
 
   return (
     <div className="chat-container">
+      {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-header">
           <h2>Users ({onlineUsers.size})</h2>
@@ -318,7 +318,6 @@ function Chat() {
             {connectionStatus}
           </div>
         </div>
-
         <div className="users-list">
           {onlineUsers.size === 0 ? (
             <div style={{ textAlign: "center", color: "#a0a0bb", fontStyle: "italic", padding: "1rem" }}>
@@ -350,6 +349,7 @@ function Chat() {
         </div>
       </div>
 
+      {/* Main Chat */}
       <div className="main-chat">
         <div className="chat-header">
           <h2>Welcome {username}</h2>
@@ -412,6 +412,7 @@ function Chat() {
         </div>
       </div>
 
+      {/* Private Chats */}
       {Array.from(privateChat.keys()).map((otherUser) => (
         <PrivateChat
           key={otherUser}
@@ -419,7 +420,7 @@ function Chat() {
           recipientUser={otherUser}
           userColor={userColor}
           stompClient={stompClient}
-          messages={allPrivateMessages.get(otherUser) || []} // <-- pass persisted messages
+          messages={allPrivateMessages.get(otherUser) || []}
           onClose={() => closePrivateChat(otherUser)}
           registerPrivateMessageHandler={registerPrivateMessageHandler}
           unregisterPrivateMessageHandler={unregisterPrivateMessageHandler}
