@@ -14,7 +14,7 @@ RUN npm ci --only=production
 # Copy source code and public folder
 COPY src ./src
 COPY public ./public
-COPY vite.config.js .   # include if you have it
+COPY vite.config.js .  
 
 # Build the application
 RUN npm run build
