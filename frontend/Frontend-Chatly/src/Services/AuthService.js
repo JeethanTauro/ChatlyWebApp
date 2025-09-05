@@ -1,6 +1,6 @@
 import axios from 'axios'
 import Signup from '../Pages/Signup';
-const URL = "http://localhost:8080";
+const URL = "http://backend:8080";
 
 const api = axios.create({
     baseURL : URL,
